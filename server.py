@@ -287,7 +287,7 @@ async def convert_skp(
 
 
         # =============================================
-        # RUTA DENTRO DE SUPABASE
+        # RUTA EN SUPABASE STORAGE
         # =============================================
 
         storage_path = (
@@ -296,27 +296,34 @@ async def convert_skp(
 
 
         # =============================================
-        # SUBIR GLB A SUPABASE STORAGE
+        # LEER GLB
         # =============================================
 
         with glb_path.open(
             "rb"
         ) as glb_file:
 
-            supabase.storage \
-                .from_(SUPABASE_BUCKET) \
-                .upload(
-                    path=storage_path,
-                    file=glb_file,
-                    file_options={
-                        "content-type":
-                            "model/gltf-binary",
-                        "cache-control":
-                            "31536000",
-                        "upsert":
-                            "true"
-                    }
-                )
+            glb_data = glb_file.read()
+
+
+        # =============================================
+        # SUBIR GLB A SUPABASE
+        # =============================================
+
+        supabase.storage \
+            .from_(SUPABASE_BUCKET) \
+            .upload(
+                storage_path,
+                glb_data,
+                {
+                    "content-type":
+                        "model/gltf-binary",
+                    "cache-control":
+                        "31536000",
+                    "upsert":
+                        "true"
+                }
+            )
 
 
         # =============================================
@@ -337,7 +344,6 @@ async def convert_skp(
         # =============================================
 
         return {
-
             "ok":
                 True,
 
@@ -375,7 +381,7 @@ async def convert_skp(
     finally:
 
         # =============================================
-        # LIMPIAR ARCHIVOS TEMPORALES
+        # ELIMINAR ARCHIVOS TEMPORALES
         # =============================================
 
         shutil.rmtree(
@@ -394,12 +400,15 @@ async def convert_skp(
 def root():
 
     return {
-        "ok": True,
+        "ok":
+            True,
+
         "service":
             "Universal Stand SKP Converter",
+
         "converter":
             "OpenSKP",
+
         "storage":
-            "Supabase Storage"
+            "Supabase"
     }
-)
