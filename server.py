@@ -448,48 +448,57 @@ def run_conversion_job(
         # LEER GLB
         # =============================================
 
-        # Liberar el objeto SKP antes de cargar el GLB completo en memoria.
-        # Esto reduce el pico de RAM durante la subida a Supabase.
+        # Liberar el objeto SKP y forzar la recolección antes de la subida.
+        # No cargamos el GLB completo en RAM. Supabase Python acepta un
+        # archivo binario abierto directamente, evitando duplicar un GLB grande.
         try:
             del skp
         except Exception:
             pass
 
-        with glb_path.open(
-            "rb"
-        ) as glb_file:
+        try:
+            import gc
+            gc.collect()
+        except Exception:
+            pass
 
-            glb_data = (
-                glb_file.read()
-            )
+        glb_size_mb = glb_path.stat().st_size / (1024 * 1024)
+
+        print(
+            f"[SKP {job_id}] GLB generado: "
+            f"{glb_size_mb:.2f} MB",
+            flush=True
+        )
 
 
         # =============================================
-        # SUBIR GLB
+        # SUBIR GLB SIN DUPLICARLO EN RAM
         # =============================================
 
-        supabase.storage \
-            .from_(SUPABASE_BUCKET) \
-            .upload(
+        with glb_path.open("rb") as glb_file:
 
-                storage_path,
+            supabase.storage \
+                .from_(SUPABASE_BUCKET) \
+                .upload(
 
-                glb_data,
+                    storage_path,
 
-                {
+                    glb_file,
 
-                    "content-type":
-                        "model/gltf-binary",
+                    {
 
-                    "cache-control":
-                        "31536000",
+                        "content-type":
+                            "model/gltf-binary",
 
-                    "upsert":
-                        "true"
+                        "cache-control":
+                            "31536000",
 
-                }
+                        "upsert":
+                            "true"
 
-            )
+                    }
+
+                )
 
 
         # =============================================
