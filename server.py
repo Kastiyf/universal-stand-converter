@@ -24,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 
 import openskp
 from openskp import SkpFile
-from openskp.export import glb
+from openskp.export import instanced_glb
 
 from supabase import create_client, Client
 
@@ -336,7 +336,7 @@ def run_conversion_job(
 
 
         # =============================================
-        # EXPORTAR GLB
+        # EXPORTAR GLB INSTANCIADO
         # =============================================
 
         update_job(
@@ -346,7 +346,7 @@ def run_conversion_job(
             stage="exporting",
 
             message=
-                "Generando el modelo GLB...",
+                "Generando el modelo GLB optimizado...",
 
             progress=45
         )
@@ -355,14 +355,14 @@ def run_conversion_job(
         print(
 
             f"[SKP {job_id}] "
-            f"Ejecutando export()...",
+            f"Ejecutando export instanciado...",
 
             flush=True
 
         )
 
 
-        glb.export(
+        instanced_glb.export(
 
             skp,
 
